@@ -1,0 +1,28 @@
+%\subsection{An End-to-End Decision Tree Benchmark}\label{eva:pdte}
+
+% After query process, we use the function described in \cref{Analysis: Bridge} to bridge the gap between 
+% aggregation result and data analysis. 
+% {\bf{End-to-End Decision Tree Benchmark}}: 
+%\paragraph{End-to-End Decision Tree Benchmark}
+For the evaluation of the private decision tree, 
+we provide a brief summary of the evaluation results obtained over
+multiple decision tree models under a computation outsourcing setting, where both
+the inputs and the model weights of the decision trees are ciphertexts.
+% through our \pdte on 
+% the experiment environment described \cref{eva:Arch}. 
+To enable fair comparisons, we use the same datasets 
+as in~\cite{sortinghat}, and reworked the implementation of~\cite{sortinghat} such that the
+solution in~\cite{sortinghat} can also operate over encrypted inputs and model weights.
+%\cref{fig: homtreebench} compares the performance of \NAME and \cite{sortinghat} on  
+%end-to-end decision tree benchmark. 
+While detailed comparison results can be found in the appendix, we achieve 12x--326x faster 
+evaluation speed than~\cite{sortinghat} over a wide range of datasets and input sizes.
+Thus, by adding the powerful online data analysis
+capability to the expressive query evaluation framework,
+\NAME is able to significantly improve the efficiency, usability
+and practical applicability of outsourcing databases securely.
+% able to significantly narrow
+% the performance and usability gaps between theoretical FHE-based encrypted
+% database constructions and practical needs for SDO in the real world.
+% improve the 
+% practicality of secure database outsourcing based on fully homomorphic encryption.

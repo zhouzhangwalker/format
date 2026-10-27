@@ -1,0 +1,31 @@
+\section{Cryptographic Building Blocks}\label{block}
+
+
+In this section, 
+% we present the homomorphic query evaluation algorithm for 
+%we detail the online query processing stage in \NAME.
+% We briefly review the SQL statements in \NAME
+% and provide a plaintext illustration in \cref{block: overview}.
+we introduce the main cryptographic tools we develop,
+namely, the homomorphic comparison operator $\homcomp$ for
+homomorphic predicate evaluation (\cref{block: comparison}), 
+the homomorphic minimum and maximum operators 
+$\hommin$ and $\hommax$
+for homomorphic logic aggregation (\cref{block: minmax}),
+%\texttt{MIN/MAX}, 
+and a new $\repack$ operator for homomorphic arithmetic aggregation  
+(\cref{block: LWEsPack}).
+
+% to 
+% significantly enhance the computational performance
+% and digital precision in 
+
+% These three algorithms are also of 
+% independent interest in the FHE research community.
+
+
+
+\input{ccs-body/build_blocks/overview.tex}
+\input{ccs-body/build_blocks/homomorphic_comparison.tex}
+\input{ccs-body/build_blocks/homomorphic_logic_aggregation.tex}
+\input{ccs-body/build_blocks/homomorphic_arithmetic_aggreagation.tex}

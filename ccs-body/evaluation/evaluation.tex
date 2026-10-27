@@ -1,0 +1,48 @@
+\section{Evaluation}\label{eva}
+% In this section, we implement \NAME
+% and thoroughly evaluate its efficiency. 
+Throughout the experiments,
+we wish to answer the following two main research questions (RQs).
+\begin{itemize}
+    \item {\bf{RQ1}}: How efficient are the individual components of \NAME
+    compare to state-of-the-art (SOTA) methods? (\cref{sec:qual_comp}, \cref{eva: microbenchmarks}) 
+    \item {\bf{RQ2}}: How does the performance of \NAME in specific SQL queries 
+    and end-to-end data analysis benchmark compare to other methods? 
+    (\cref{eva: sql_benchmark})
+\end{itemize}
+%We note in the first question, we want to benchmark
+
+\subsection{Experiment Setup}\label{eva:Arch}
+The entire \NAME is implemented using C++17 and 
+compiled with GCC 10.3.0 based on Microsoft SEAL~\cite{codeseal},
+%(an easy-to-use open-source homomorphic encryption library)
+OpenPEGASUS~\cite{codepegasus}, and TFHEpp~\cite{codetfhepp}.
+% , which are the state-of-the-art implementations
+% of the CKKS and TFHE schemes.
+For single-core microbenchmarks, the experiments are  carried out on 
+an Intel Xeon Gold 6226R processor with 512GB of RAM. Meanwhile,
+the experiments for the TPC-H benchmarks~\cite{tpc_h} reported in \cref{eva: sql_benchmark} are performed
+on two servers with a total of four Intel Xeon Gold 5318Y processors with
+96 cores and 1TB of RAM.
+%\textbf{Instantiated Parameters}: 
+The instantiated parameters are outlined in \cref{tab:parameters}, which provide 
+at least 128-bit of security level according to~\cite{lweestimator}.
+We fix the standard deviation 
+$\sigma$ of the 
+noise distribution $\chi$ and set the security level $\lambda$ 
+to meet the Homomorphic Encryption Standard~\cite{HomomorphicEncryptionSecurityStandard}. 
+It is noted that we actually achieved better security than the most relevant work HEDA,
+as HEDA only guarantees an 80-bit security~\cite{heda}.
+
+% Here, 
+% we take $\sigma = 3.19 
+% \approx 8/\sqrt{2\pi } $ and the resulting $\lambda = 128$-bit.
+
+
+
+
+\input{ccs-body/evaluation/quality_benchmark.tex}
+\input{ccs-body/evaluation/microbenchmark.tex}
+\input{ccs-body/evaluation/sql_benchmark.tex}
+
+\input{ccs-body/evaluation/application.tex}

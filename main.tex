@@ -1,0 +1,170 @@
+\documentclass[sigconf, anonymous,review]{acmart}
+% \documentclass[manuscript, screen, review]{acmart}.
+% \fancyhf{} % Remove fancy page headers 
+% \fancyhead[C]{Anonymous submission \#9999 to ACM CCS 2019} % TODO: replace 9999 with your paper number
+% \fancyfoot[C]{\thepage}
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+    
+\setcopyright{none}
+\copyrightyear{2023}
+\acmYear{2023}
+\acmDOI{XXXXXXX.XXXXXXX}
+\acmPrice{15.00}
+\acmISBN{978-1-4503-XXXX-X/23/11}
+\acmSubmissionID{118}
+% \setcopyright{none} % No copyright notice required for submissions
+\acmConference[ACM CCS 2023]{ACM Conference on Computer and Communications Security}{November 26--30 2023}{Copenhagen, Denmark}
+% \acmConference[ACM CCS 2023]{Make sure to enter the correct
+%   conference title from your rights confirmation emai}{June 03--05,
+%   2018}{Woodstock, NY}
+\settopmatter{printacmref=false, printccs=true, printfolios=true} % We want page numbers on submissions
+
+%%\ccsPaper{9999} % TODO: replace with your paper number once obtained
+\usepackage{xspace}
+\usepackage{xcolor}             % colors
+\usepackage{booktabs}
+\usepackage[ruled,linesnumbered,noend]{algorithm2e}               % Algorithm
+\usepackage[capitalize,noabbrev]{cleveref}              %cross-reference
+\usepackage{multirow}               %table
+\usepackage[mathscr]{eucal}
+\usepackage{bbding}             % signal
+\usepackage{array}
+\usepackage{listings}               %code
+\usepackage{caption}
+\usepackage{subcaption}
+% \newtheorem{theorem}{Theorem}               %theorem
+\lstset{
+    language=SQL,
+    basicstyle          =   \ttffamily,          
+    keywordstyle        =   \color{blue},         
+    commentstyle        =   \rmfamily\itshape,  
+    stringstyle         =   \ttfamily,  
+    flexiblecolumns,                
+    % numbers             =   left,   
+    showspaces          =   false,  
+    numberstyle         =   \tiny,    
+    showstringspaces    =   false,
+    captionpos          =   t,      
+    frame               =   lrtb,
+}
+
+\usepackage{amsmath,amssymb,booktabs}
+
+
+% \newcommand{\NAME}{HE\mathop{$^{3}$}DB\xspace}
+\newcommand{\NAME}{HE$^3$DB\xspace}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+\newcommand{\abs}[1]{\lvert {#1} \rvert}
+\newcommand{\reg}[1]{{\rm {#1}}}
+\newcommand{\step}[1]{$\bullet$ \textbf{#1}}
+\newcommand{\yeah}{{\Checkmark}}
+\newcommand{\nope}{{\textcolor{red}\XSolidBrush}}
+\newcommand{\eyeah}{{\textcolor{blue}{\Checkmark}}}
+\newcommand{\noyeah}{{\TriangleUp}}
+\newcommand{\revise}[1]{\textcolor{blue}{{#1}}}
+\newcommand{\etal}{{\it{et al.}}}
+% SQL--------------------------------
+\newcommand{\select}{\texttt{SELECT}}
+\newcommand{\sort}{\texttt{Sort}}
+\newcommand{\groupby}{\texttt{GROUP BY}}
+\newcommand{\join}{\texttt{JOIN}}
+\newcommand{\orderby}{\texttt{ORDER BY}}
+\newcommand{\attribute}{\mathsf{Attr}}
+\newcommand{\dbmin}{\texttt{MIN}}
+\newcommand{\dbmax}{\texttt{MAX}}
+\newcommand{\dband}{\texttt{AND}}
+\newcommand{\dbnand}{\texttt{NAND}}
+\newcommand{\dbnor}{\texttt{XOR}}
+\newcommand{\dbnot}{\texttt{NOT}}
+\newcommand{\dbtopk}{\texttt{Top-k}}
+\newcommand{\dbsum}{\texttt{SUM}}
+\newcommand{\dbavg}{\texttt{AVG}}
+\newcommand{\dbcount}{\texttt{COUNT}}
+\newcommand{\dbop}{\texttt{OP}}
+\newcommand{\msb}{\texttt{MSB}}
+\newcommand{\lsb}{\texttt{LSB}}
+\newcommand{\calgo}{\texttt{Analysis}}
+% \newcommand{\pdte}{\texttt{PDTE}}
+\newcommand{\algoweight}{\mathsf{W}}
+
+% HE---------------------------------
+\newcommand{\homcomp}{\texttt{HomComp}}
+\newcommand{\homgate}{\texttt{HomGate}}
+\newcommand{\hmsb}{\texttt{HMSB}}
+\newcommand{\cmux}{\texttt{CMUX}}
+\newcommand{\br}{\texttt{BlindRotate}}
+\newcommand{\pbs}{\texttt{PBS}}
+\newcommand{\pbshmsb}{\texttt{PBS-HMSB}}
+\newcommand{\sei}{\texttt{RLWEtoLWEs}}
+\newcommand{\repack}{\texttt{LWEstoRLWE}}
+\newcommand{\cb}{\texttt{LWEtoRGSW}}
+% \newcommand{\homgate}{\texttt{HomGate}}
+\newcommand{\lwe}{{\mathsf{LWE}}}
+\newcommand{\lwenan}{{\mathsf{LWE_{\rm NaN}}}}
+\newcommand{\rlwe}{{\mathsf{RLWE}}}
+\newcommand{\rlweslot}{{\mathsf{RLWE\text{-}Slot}}}
+\newcommand{\rlwecoeff}{{\mathsf{RLWE\text{-}Coeff}}}
+\newcommand{\rrlwe}{{\mathsf{R}/\mathsf{LWE}}}
+\newcommand{\rgsw}{{\mathsf{RGSW}}}
+\newcommand{\gsw}{{\mathsf{GSW}}}
+\newcommand{\rrgsw}{{\mathsf{R}/\mathsf{GSW}}}
+\newcommand{\ttr}{{\Tilde{r}}}
+\newcommand{\ttp}{{\Tilde{p}}}
+\newcommand{\ttm}{{\Tilde{m}}}
+\newcommand{\tts}{{\Tilde{s}}}
+\newcommand{\ttv}{{\Tilde{v}}}
+\newcommand{\frakt}{{\mathfrak{t}}}
+\newcommand{\ba}{{\mathbf{a}}}
+\newcommand{\bs}{{\mathbf{s}}}
+\newcommand{\bm}{{\mathbf{m}}}
+\newcommand{\bb}{{\mathbf{b}}}
+\newcommand{\bBK}{{\mathbf{BK}}}
+\newcommand{\kcmux}{{\texttt{1-out-of-k-CMUX}}}
+\newcommand{\cmp}{{\texttt{cmp}}}
+\newcommand{\hommin}{{\texttt{HomMIN}}}
+\newcommand{\hommax}{{\texttt{HomMAX}}}
+\newcommand{\homminagg}{{\texttt{HomMINAgg}}}
+\newcommand{\hommaxagg}{{\texttt{HomMAXAgg}}}
+\newcommand{\encode}{\mathcal{E}}
+\newcommand{\prnd}{p_{\rm Round}}
+\newcommand{\homlt}{{\texttt{HomLT}}}
+
+% Notation---------------------------
+
+\newcommand{\db}{\mathcal{D}}
+\newcommand{\dbabs}{\abs{\mathcal{D}}}
+\newcommand{\dbtab}{\mathcal{T}}
+\newcommand{\dbabstab}{\abs{\mathcal{T}}}
+\newcommand{\dbtabrow}{|\mathcal{T}|_{\rm row}}
+\newcommand{\dbtabcolumn}{|\mathcal{T}|_{\rm row}}
+\newcommand{\dbquery}{\mathcal{Q}}
+\newcommand{\dbabsquery}{\abs{\mathcal{Q}}}
+
+\newcommand{\dbtabrowsize}{|\mathcal{T}|_{\rm row}}
+\newcommand{\dbtabcolsize}{|\mathcal{T}|_{\rm col}}
+\newcommand{\upint}[1]{\left \lceil {#1} \right \rceil}
+\newcommand{\round}[1]{\left \lceil {#1}  \right \rfloor}
+\newcommand{\Round}{\texttt{Round}}
+
+\newcommand{\pdte}{\texttt{PDTEval}\xspace}
+
+\begin{document}
+%\title{HDB: Homomorphic Encrypted Database via Arithmetic-and-Logic Circuit} % TODO: replace with your title
+\title[\NAME: An Efficient Encrypted Database via Fully Homomorphic Encryption]{\NAME: An Efficient and Elastic Encrypted Database Via
+Arithmetic-And-Logic Fully Homomorphic Encryption}
+%\\ Secure and Efficient Analytical Data Processing} % TODO: replace with your title
+\input{ccs-body/abstract.tex}
+
+\sloppy
+\input{ccs-body/ccsconcept.tex}
+\keywords{Fully Homomorphic Encryption, Secure Database Outsourcing}
+\maketitle
+
+\input{ccs-body/ccs-body.tex} % TODO: replace with your brilliant paper!
+\clearpage
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{main}
+\input{ccs-body/appendix.tex}
+\end{document}

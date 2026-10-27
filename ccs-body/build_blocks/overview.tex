@@ -1,0 +1,210 @@
+% \subsection{Overview}\label{block: overview}
+% \begin{table*}[t!]
+%     % \footnotesize
+%     \centering
+%     \caption{Summary of operation costs for homomorphic SQL operators.
+%     Here, the $\dbtabrow$ stands for the number of rows in the table 
+%     $\dbtab$, the $\abs{\attribute}$ represents the range of 
+%     attribute.}
+%     \vspace{-0.5em}
+%         \begin{tabular}{ccccc}
+%             \toprule
+%             operator & \#\homcomp & \#\homgate & \#\cmux & \#\cb\\
+%             \midrule
+%             $\select$ & $\dbtabrow \cdot \dbabsquery$& 
+%             $\abs{\dbtab}_r \cdot (\dbabsquery - 1)$ & 0 & 0\\
+%             $\join$ & $\abs{\dbtab_a}_c \cdot \abs{\dbtab_b}_c$&
+%             0 & 0 & 0\\
+%             $\groupby$ & $\dbtabrow \cdot \abs{\attribute}$ &
+%             0 & 0 & 0\\
+%             $\orderby$ & $\dbtabrow \log_{2}^{2}{\dbtabrow } $ & 0 
+%             & $\dbtabrow (\log_{2}^{2}{\dbtabrow } + 1) $&
+%             $\dbtabrow (\log_{2}^{2}{\dbtabrow } + 1) $ \\
+%              $\dbmin/\dbmax$ & $\dbtabrow - 1$ & 0 & $2\dbtabrow - 1$ & $2\dbtabrow - 1$\\
+%             
+%             
+%             \bottomrule
+%         \end{tabular}
+%     \label{tab: sqlcost}
+% \end{table*}
+% 
+% In this section, we talk about how \NAME supports SQL query
+% operators including $\select, \join, \groupby, \orderby$
+% , and aggregation functions. 
+% We provide a simple plaintext illustration in \cref{fig: query_eva}
+% and analyze the homomorphic operator costs for distinct SQL statements with respect to the input size $\dbabstab$ in \cref{tab: sqlcost}.
+% 
+% $\bullet$ $\boldsymbol{\select}$. 
+% The homomorphic $\select$ operator inputs 
+% $\dbabsquery$ encrypted predicates with 
+% $\dbtabcolumn$ columns of RLWE ciphertexts
+% and outputs a set of LWE ciphertexts
+% $\mathbf{sc} = (sc_0, sc_1 ,..., sc_{\dbtabrow-1})$
+% where each $sc_i$ is an LWE
+% ciphertext which encrypts $1$ or $0$, 
+% indicating the $i$-th row of $\dbtab$
+% is selected or not.
+% The homomorphic $\select$ operator contains 
+% the homomorphic predicate evaluation and the gate operation
+% between the predicate results.
+% In \NAME, 
+% the encrypted predicate (as shown in \cref{fig: query_eva})
+% is the logical comparison 
+% ($>, \geq, <, \leq, ==, \ne$)
+% between 
+% two ciphertexts
+% and could be evaluated by the
+% homomorphic comparison $\homcomp$ operator in \cref{block: comparison}.
+% The gate operation (AND, OR)
+% between the comparison results
+% could be implemented by the $\homgate$ defined in 
+% \cref{pre:he_circuits}.
+% The cost of $\homcomp$ in $\select$ is $\dbtabrow \cdot 
+% \dbabsquery$ since 
+% each predicate requires the comparison between all the encrypted records ($\dbtabrow$) of 
+% the certain column and 
+% the ciphertext of the predicate value.
+% And the cost of $\homgate$ in $\select$ is $\dbtabrow \cdot (\dbabsquery - 1)$  
+% as the $\dbabsquery$ predicates contains $(\dbabsquery - 1)$
+% gate operators applied to the results of the comparison.
+% % Consider an example 
+% % predicate \texttt{ID == 2158} in $\dbquery$,
+% % it requires the comparison between all the encrypted records ($\abs{\dbtab}_r$) of 
+% % the column \texttt{ID} and 
+% % the ciphertext of the predicate value \texttt{2158},
+% % which contains $\abs{\dbtab}_r$ homomorphic comparisons.
+% % Moreover, the results of $\abs{\dbquery}$ predicates
+% % will be integrated into the selected result by
+% % $\abs{\dbquery} - 1$ gate operators, while each operators handles
+% % $\abs{\dbtab}_r$ comparison results from homomorphic predicate evaluation.
+% % in \cref{block: comparison}. 
+% 
+% $\bullet$ $\boldsymbol{\join}$.
+% A homomorphic inner join is composed of 
+% the Cartesian product of the two encrypted tables
+% and the evaluation of the join condition, which could be 
+% implemented by homomorphic comparison operator $\homcomp$.
+% Thus, the cost of  $\homcomp$ in $\join$ is 
+% $\abs{\dbtab_a}_c \cdot \abs{\dbtab_b}_c$.
+% 
+% $\bullet$ $\boldsymbol{\groupby}$.
+% To evaluate the homomorphic $\groupby$ operator,
+% we segregate the original query $\dbquery$ into several queries, 
+% each with additional equality comparison predicates.
+% For example, $\groupby$ the attribute $\mathsf{Sex = \{0,1\}}$ 
+% could be implemented by $\dbquery$ with additional predicate $\mathsf{Sex = 0}$
+% and $\dbquery$ with additional predicate predicate $\mathsf{Sex = 1}$.
+% Supposing the range of $\groupby$ attribute $\attribute$ is $\abs{\attribute}$.
+% Thus, the cost of  $\homcomp$ in $\groupby$ is 
+% $\dbtabrow \cdot \abs{\attribute}$.
+% 
+% $\bullet$ $\boldsymbol{\orderby}$.
+% The homomorphic $\orderby$ operator could be implemented by
+% homomorphic comparison $\homcomp$ and homomorphic selector $\cmux$.
+% The main challenge is how to only sort the selected encrypted records. 
+% We detail our method to overcome this challenge \cref{block: minmax}.
+% 
+% $\bullet$ \textbf{Aggregation functions}.
+% As shown in \cref{fig: query_eva},
+% after the homomorphic predicate evaluation, 
+% we get $\abs{\mathcal{T}}_{r}$
+% LWE ciphertexts encrypt the filtering results.
+% The homomorphic aggregation computes the functions
+% on the filtered rows.
+% \NAME supports both logic aggregation 
+% (such as $\dbmin, \dbmax$, and $\dbtopk$)
+% and arithmetic aggregation functions
+% (such as $\dbsum, \dbavg$, and $\dbcount$).
+% We detail the exact method in \cref{block: minmax} and \cref{block: LWEsPack}.
+% As shown in \cref{fig: query_eva}, to calculate \texttt{MIN(HR)}, 
+% we first selected the satisfied rows and perform \texttt{HomMIN} operations.}
+
+% \revise{\cref{fig: query_eva} illustrate a plaintext process 
+% of query evaluation in \NAME.
+% It works on the encrypted table $\mathcal{CT}$, that is, 
+% a set of RLWE ciphertexts 
+% $(ct_1, ct_2, ..., ct_{\lvert \mathcal{T} \rvert_{c}})$.
+% On a high level, the evaluation of encrypted query 
+% $\mathcal{CQ} = (cp_{1}, cp_{2}, ... ,cp_{\lvert \mathcal{Q} \rvert}, B, G)$ 
+% on $\mathcal{CT}$  
+% can be summarized in the following steps:}
+
+% \revise{\textbf{1) homomorphic predicate evaluation}: 
+% For each encrypted predicate 
+% $cp_i \in \mathcal{CQ}, i \in (1, 2, ..., \abs{\mathcal{Q}})$,
+% we take the matched encrypted column ciphertext 
+% $ct_d \in \mathcal{CT}$ and the predicate value ciphertext $cp_i$, 
+% which are two RLWE ciphertexts, 
+% to perform \texttt{HomCom} operations 
+% and get a set of LWE ciphertexts $\mathbf{ctp_i}$ 
+% where the $j$-th LWE ciphertext of $\mathbf{ctp_i}$ indicates 
+% the $j$-th row of the table is satisfied the predicate $cp_i$ or not.
+% Then we calculate the \texttt{HomGate} 
+% between each comparison result $\mathbf{ctp_i}$.
+% After the evaluation, we obtain a set of LWE ciphertexts 
+% $\mathbf{fr} = (fr_1, fr_2 ,..., fr_{\abs{\mathcal{T}}_r})$
+% where each $fr_i$ is an LWE
+% ciphertext which encrypts $1$ or $0$, 
+% indicating the $i$-th row of $\mathcal{T}$
+% is selected or not.}
+% $\mathbf{}$
+% to perform
+% The homomorphic predicate evaluation of $\mathcal{CQ}$
+% consists of the homomorphic comparison \texttt{HomComp} in each
+% predicate $cp_i$ and the homomorphic gate \texttt{HomGate} 
+% between predicates.
+% \revise{Gate Tree..., add an algorithm, and complexity analysis...}
+ 
+% $i \in (1, 2, ..., \abs{\mathcal{Q}})$ in $\mathcal{CQ}$, 
+% we first get the attribute index of the predicate $d$ 
+% and the comparison operator $op$
+% ($\geq, \leq, ==, >, <$) of the predicate.
+% Here, the $ct_d$ represents the RLWE ciphertext which
+% encrypts the matching column in $\mathcal{T}$
+% and the $cp_i$ refers to the RLWE ciphertext of the predicate value.
+% Then, we sample extract the RLWE ciphertexts $ct_d$ and $cp_i$, 
+% and get two LWE ciphertext vectors
+% $\mathbf{ct_d}$ and $\mathbf{cp_i}$ wich size $\abs{\mathcal{T}}_{r}$.
+% For each LWE ciphertext $ct_d[j]$and $cp_i[j]$, 
+% we perform \texttt{HomCom} of the two LWE ciphertext
+% with the comparison operator $op$
+% and get the encrypted comparison result $comp_{i,j}$.
+% Next, we evaluate the logic gate between different predicates 
+% using \texttt{HomGate}.
+
+
+% \revise{\textbf{2) homomorphic logic aggregation}:
+% After the homomorphic predicate evaluation, 
+% we get $\abs{\mathcal{T}}_{r}$
+% LWE ciphertexts encrypt the filtering results.
+% The homomorphic logic aggregation computes the logic function
+% (such as \texttt{MIN/MAX}, \texttt{Top-k})
+% on the filtered rows.
+% As shown in \cref{fig: query_eva}, to calculate \texttt{MIN(HR)}, 
+% we first selected the satisfied rows and perform \texttt{HomMIN} operations.}
+% % the \texttt{HomMIN}
+% % The $\texttt{LWEsPack}$
+% % packs $\abs{\mathcal{T}}_{r}$ into a RLWE ciphertext $fl$
+% % for latter homomorphic aggregation.
+
+% \revise{\textbf{3) homomorphic arithmetic aggregation}:
+% The aggregation process computes the arithmetic function
+% (such as \texttt{SUM}, \texttt{AVG}, and \texttt{COUNT})
+% on the filtered rows.
+% As the filtered result format (LWE ciphertexts) is inefficient
+% to homomorphic arithmetic function.
+% We need to perform homomorphic ciphertext conversion 
+% \texttt{HomConvert} to pack LWE ciphertexts into an RLWE ciphertext
+% for latter operators.}
+% For each aggregation filed $g_i$, 
+% we get the attribute index $d = g(a)_i$
+% and the aggregation function $f_i = g(f)_i$.
+% As the filtering result $fl$ is in coefficient format, 
+% we directly perform the aggregate function when $f_i$ supports 
+% coefficient format computation.
+% Otherwise, we first evaluate the \texttt{CoeffToSlot} 
+% to convert $fl$ to $\hat{fl}$ slot format ciphertext $\hat{fl}$
+% and then computes the $f_i$ in slot format.
+
+
+

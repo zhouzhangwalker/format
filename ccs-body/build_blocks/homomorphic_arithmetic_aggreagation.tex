@@ -1,0 +1,234 @@
+\subsection{Homomorphic Arithmetic Aggregation}\label{block: LWEsPack}
+To support homomorphic arithmetic aggregations 
+(such as $\dbsum$, $\dbcount$, and $\dbavg$), 
+the $\dbtabrowsize$ LWE ciphertexts which encrypt the filtered results
+have to be packed in an RLWE ciphertext 
+as arithmetic aggregation over LWE ciphertexts are slow.
+In this section, we propose a new homomorphic ciphertext conversion
+algorithm $\repack$ and the associated 
+homomorphic arithmetic aggregations procedure.
+
+\begin{algorithm}[t!]
+    % \tiny
+    \caption{$\repack$}
+    \label{algo: lwespack}
+    \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}\SetKwInOut{Return}{Return}\SetKwComment{Comment}{$\triangleright$\ }{}
+    \Input{$N$ LWE ciphertexts $(\lwe_0, \lwe_1, ...,\lwe_{N-1})$ where 
+    $\lwe_i = \lwe^{n,q}_{\mathbf{s}}(m_i) = (b_i, \mathbf{a_i})$
+    and $m_i = 0/1$. }
+    \Input{A conversion key 
+    $\reg{\mathbf{CK}}$.}
+    \Input{A precision parameter $\delta$, range parameter $(u,v)$}
+    \Output{An RLWE ciphertext $ct = \rlwe^{N,Q}_{\Tilde{s}}(\encode(\mathbf{m}))$,
+    where $\mathbf{m}_{i} = m_i$ for $i \in \mathbb{Z}_{N}$}
+     Let $\mathbf{b} \leftarrow [b_0, b_1, ...,b_{N-1}]$, 
+     $\mathbf{A} \leftarrow [\mathbf{a_0}, \mathbf{a_1}, ..., \mathbf{a_{N-1}}]^{T} \in \mathbb{Z}_{q}^{N \times n}$\\
+     % $ct_1 = \texttt{HomMVMul}(\mathbf{A},CK)$.
+     $ct_1 \leftarrow \mathbf{CK} \diamond \mathbf{A}$
+     \Comment*[r]{$ct_1 = \rlwe^{N,Q_1}_{\Tilde{s}}(\encode(\mathbf{A}\mathbf{s}))$}
+     $ct_2 \leftarrow ct_1 + (\encode(\mathbf{b},0))$
+     \Comment*[r]{$ct_2 = \rlwe^{N,Q_1}_{\Tilde{s}}(\encode(\mathbf{A}\mathbf{s} + \mathbf{b}))$} 
+     $ct_3 \leftarrow\texttt{HomMod}(ct_2, q)$
+     \Comment*[r]{$ct_3 = \rlwe^{N,Q_2}_{\Tilde{s}}(\encode(\mathbf{m+e}))$} 
+     Generate the approximate polynomial $p(x)$ \\
+     $ct \leftarrow \prnd(ct_3)$
+     \Comment*[r]{$ct = \rlwe^{N,Q_3}_{\Tilde{s}}(\encode(\prnd(\mathbf{m})))$} 
+    \Return{$ct = \rlwe^{N,Q}_{\Tilde{s}}(\encode(\prnd(\mathbf{m})))$}
+\end{algorithm}
+
+\subsubsection{Homomorphic ciphertext conversion $\repack$}
+Existing works in converting LWE ciphertexts into
+an RLWE ciphertext
+include PEGASUS~\cite{pegasus} and 
+the method of Chen \etal~\cite{conversionhaochen}.
+% Both their methods can only achieve one competitive performance 
+% in latency and precision.
+% The key idea of 
+% Pegasus~\cite{pegasus} in ciphertext conversion 
+% consists of homomorphically evaluating LWE partial decryption as well as 
+% homomorphically evaluating modulo $q$ on an RLWE ciphertext encrypting secret key.
+% Both two operations can be achieved 
+% by arithmetic homomorphic circuits~\cite{helib,ckksbootsparse,ckksbootvariance}.
+Taking advantage of SIMD packing arithmetic homomorphic circuits, 
+PEGASUS~\cite{pegasus}
+performs fast ciphertext conversion but suffers from the low-precision 
+problem due to the noise growth in homomorphic arithmetic circuits.
+In contrast, Chen \etal~\cite{conversionhaochen} packs the
+LWE ciphertexts by evaluating a series of
+recursive homomorphic automorphisms~\cite{helib}.
+We point out that Chen \etal~\cite{conversionhaochen}
+enjoys high-precision packing capability, but 
+induces a higher amount of latency overheads.
+% This approach achieves high-precision packing but is 
+% limited to a small size.
+% When the packing size of LWE ciphertexts is large, 
+% the latency is still very high.
+
+%Unfortunately, in an encrypted database setting, 
+Here, we design a homomorphic $\repack$ algorithm that
+achieves both, a fast algorithm that can accurately
+pack a set of LWE ciphertexts into one RLWE ciphertext.
+%and high-precision format conversion.
+% In \NAME, we propose our homomorphic ciphertext conversion method
+% for homomorphically encrypted database
+% which achieves low latency and high precision.
+Our critical insight is that, in a homomorphically encrypted database, 
+the predicate results are in a very limited range, e.g., usually only
+0's and 1's to express the logical validity of the database entries.
+Thus, we can actually ``correct'' the errors on the low-precision ciphertext to 
+obtain a high-precision ciphertext. 
+% To be more specific, we first
+% execute the fast repack algorithm proposed in~\cite{pegasus} on
+% a set of LWE ciphertexts to produce
+
+% Then, we evaluate an additional $\Round$ function on the repacked RLWE
+% ciphertext to homomorphically remove the noise $e$. 
+% % the objective of our new conversion algorithm is to convert 
+% %$ct = \rlwe(\encode(\mathbf{m}))\text{ where } $\bm \ni m_i = 0\pm e\text{ or }1\pm e$
+% Concretely, we wish to convert
+% $ct=\rlwe(\encode(\mathbf{m}))$ into $ct' =  \rlwe(\encode(\mathbf{m'}))$ such that 
+% $m'_i = \Round(m_i)$, and that
+% $m'_i$ contains less noises than $m_i$ for all $i\in|\bm|$.
+
+
+The detailed algorithm $\repack$ involves the following steps.
+First of all, in \cref{algo: lwespack},
+we are given $N$ LWE filtering results $\lwe_0, \lwe_1, ...,\lwe_{N-1}$
+where $\lwe_i = \reg{LWE}_{\mathbf{s}}^{n,q}(m_i) = (b_i, \mathbf{a_i})$
+with a  conversion key 
+$\reg{\mathbf{CK}}$.
+On Line 1, we follow~\cite{pegasus} and rearrange the ciphertexts to 
+construct a ciphertext matrix
+$\mathbf{A} = [\mathbf{a_0}, \mathbf{a_1}, ..., \mathbf{a_{N-1}}]^{T} 
+\in \mathbb{Z}_{q}^{N \times n}$ and a ciphertext vector 
+$\mathbf{b} = [b_0, b_1, ...,b_{N-1}] \in \mathbb{Z}_{q}^{N}$.
+Next, on Line 2, we evaluate the 
+homomorphic matrix multiplication
+$\mathbf{CK} \diamond \mathbf{A}$ 
+to get $ct_1 = \rlwe^{N,Q_1}_{\Tilde{s}}(\encode(\mathbf{A}\mathbf{s}))$,
+where $\encode$ stands for the CKKS encoding 
+function~\cite{DBLP:conf/asiacrypt/CheonKKS17}.
+Then, on Line 3, we homomorphically add $\bb$ to $ct_1$ and get $ct_2 = \rlwe^{N,Q_1}_{\Tilde{s}}(\encode(\mathbf{A}\mathbf{s} + \mathbf{b}))$.
+After the above transforms, we obtain the ciphertext $ct_2$
+encrypting $\mathbf{A}\mathbf{s}+\mathbf{b} = \mathbf{m} + t\mathbf{q}$.
+To remove the $t\mathbf{q}$ term, on Line 4, 
+we follow~\cite{ckksbootstrap,ckksbootsparse, ckksbootvariance, sinemod} 
+to apply \texttt{HomMod} to the \texttt{mod} $q$ function 
+homomorphically on $ct_2$, and get
+$ct_3$. %i$ = \rlwe^{N,Q_2}_{\Tilde{s}}(\encode(\mathbf{m+e}))$.
+At this stage, we obtain a packed but imprecise $\rlwe$ ciphertext 
+$ct_3 = \rlwe(\encode(\mathbf{m}))$ encrypting
+the vector of messages $\bm$ packed from the input. Here, we observe that for each $m_i\in\bm$,
+$m_i$ equals either $1\pm e$ or $0\pm e$, where the noise $e$ 
+in inevitably added via the above transforms.
+
+To correct the errors, on Line 5 in \cref{algo: lwespack}, 
+we generate a polynomial $\prnd(x)$ to approximate the rounding function $\Round(x)$.
+% Similar to the bootstrapping function, to evaluate an approximate
+% homomorphic rounding function over RLWE ciphertexts, we need
+% to construct a polynomial that approximates the behavior
+% of a rounding function.
+%As it is not easy to  evaluate a round function
+%via homomorphic arithmetic circuits directly, 
+%we generate a high-degree polynomial to 
+% approximate the target round function.
+Following~\cite{ckksbootsparse}, given an interval $[u,v]$ and a pre-defined 
+precision parameter $\delta$, we want to obtain
+a polynomial $\prnd(x) =  {\textstyle \sum_{i=0}^{n-1}}a_ix^i $ such that
+\begin{equation}
+\forall x \in [u,v],  |\prnd(x)-\round{x} | < 2^{-\delta}, \label{formula: appro}
+\end{equation}
+where $2^{-\delta}$ is negligible.
+%This question is a classical problem in approximation theory.
+Based on the equioscillation theorem~\cite{equioscillation}, $\prnd(x)$
+is the best possible approximation of the round function
+if and only if 
+\begin{align}
+&\exists x_0 \leq ... x_i ... \leq x_n \in [u,v], &\\
+&\prnd(x_i) - \round{x}= \epsilon(-1)^{i}|\prnd(x) - \round{x}|_{\infty} &
+\label{formula: equioscillation}
+\end{align}
+where $\epsilon$ = $\pm 1$.
+Taking \cref{formula: equioscillation} as the judgment condition, 
+we can construct the Remez iteration algorithm~\cite{remez} to 
+obtain the polynomial $p(x)$ meets the requirement of \cref{formula: appro}.
+Upon obtaining $\prnd(x)$, we can actually perform
+the approximate homomorphic rounding function on Line 6. As
+explained in \cref{pre:he_circuits}, $\prnd(x)$ can be directly applied
+to the RLWE $ct_3$ produced on Line 4, and we get the final output
+$ct =  \rlwe(\encode(\prnd(\bm)))$. Here, the guarantee
+is that the noises in $\prnd(\bm)$ will strictly be smaller than 
+that in $\bm$.
+
+% Concretely, we wish to convert
+% $ct=\rlwe(\encode(\mathbf{m}))$ into $ct' =  \rlwe(\encode(\mathbf{m'}))$ such that 
+% $m'_i = \Round(m_i)$, and that
+% $m'_i$ contains less noises than $m_i$ for all $i\in|\bm|$.
+% as claimed.
+% After generating the approximated round function $p(x)$, we can
+% evaluate $p(x)$ homomorphically over the RLWE ciphertext $ct_3$,
+% as explained in \cref{pre:he_circuits}.
+% As $p(x) =  {\textstyle \sum_{i=0}^{n-1}}a_ix^i $ is a type of 
+% polynomial functions, it could be implemented efficiently 
+% by homomorphic arithmetic circuits as we introduced in \cref{pre:he_circuits}.
+% Moreover, expressing the approximated function $p(x)$ 
+% in a Chebyshev basis~\cite{chebyshevbasis}
+% could optimize the evaluation process with a less 
+% number of ciphertext multiplication~\cite{
+% improvedboot, betterboot, ckksbootsparse, inverseboot}.  
+
+\subsubsection{Homomorphic arithmetic aggregation}
+Using the filtered results packed in an RLWE ciphertext $cf$ based on
+the proposed $\repack$ operator described above, we can finally
+aggregate over the target attribute.  Let the RLWE ciphertext
+encrypting items in the column be $ct_a$, we describe how
+to implement three types of conventional arithmetic aggregation functions, 
+namely, $\dbcount$, $\dbsum$ and $\dbavg$.
+%encrypt the vector of filtered result and the encrypted column of 
+%aggregated attribute $ct_a$.
+Note that the first two functions can be implemented using simple inner
+products between ciphertexts. Concretely,
+$\dbcount$ function can be implemented by the inner product between $cf$ and
+the vector $I = (1, 1, ...,1)$, while $\dbsum$
+is also an inner product between $cf$ and $ct_a$.
+The homomorphic inner product of two RLWE ciphertexts can
+be implemented over ciphertexts in both the slot format~\cite{gazelle, pegasus} 
+or in the coefficient format~\cite{cheetah, heda}.
+Furthermore, the $\dbavg$ function can be evaluated by 
+%$\dbavg() = \frac{\dbsum()}{\dbtabrowsize} \times 
+% (\frac{\dbcount)}{\dbtabrowsize})^{-1}$, in which
+$\dbavg() = \dbsum()\times 
+\dbcount()^{-1}$, where the inverse function 
+%the $\frac{1}{\dbtabrowsize}$ is public and 
+%the inversion function $(\frac{\dbcount()}{\dbtabrowsize})^{-1}$ 
+can be implemented based on ~\cite{ckkscomparison}.
+
+% The homomorphic modular reduction function is a central part
+% of CKKS bootstrapping~\cite{ckksbootstrap}, 
+% %which is a cryptography puzzle of the FHE research community.
+% and a number of recent works~\cite{ckksbootsparse, ckksbootvariance, sinemod}
+% have investigated the accuracy-efficiency trade-off for different
+% approximation polynomials.
+% Note that the exact
+% homomorphic matrix multiplication algorithms can be found in~\cite{gazelle, pegasus}.
+% To add the vector $\mathbf{b}$, 
+% we add the encoding result $\encode(\mathbf{b})$ of the vector 
+% into the first term 
+% of the ciphertext $ct_1$
+% and gets $ct_2 = \rlwe^{N,Q_1}_{\Tilde{s}}(\encode(\mathbf{A}\mathbf{s} + \mathbf{b}))$.
+% encode the vector $\mathbf{b}$ into
+% a polynomial $\encode(\mathbf{b})$ and add it into the first term 
+% of the ciphertext $ct_1$.
+% Followed by a homomorphic addition with the vector $\mathbf{b}$, 
+% we perform the LWE decryption formula $\mathbf{A}\mathbf{s}+\mathbf{b}$
+% except for the modulo function.
+% While there is a vast amount of prior work~\cite{helib, gazelle, haochenONN, pegasus}
+% on HE for matrix-vector multiplication, 
+% none take a generally efficient approach in all applications.
+% Need to discuss
+
+%\step{Line 4, Modulo $q$}:
+
+%propose their own algorithm to solve it.
+% and we adapt the approach from ~\cite{ckksbootsparse}
+% as this is not the research part of this paper.

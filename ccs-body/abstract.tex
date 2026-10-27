@@ -1,0 +1,47 @@
+\begin{abstract}
+% Cloud-based database management systems (DBMS) allow users to manage and
+% analyze data in a convenient way while leaking their sensitive information.
+% Modern cloud-based database management systems (DBMS) generally store 
+% data from the clients in a decipherable manner, where the data
+% are either kept completely in plaintext or in ciphertext but with a secret key 
+% that is known to the cloud vendor.
+% Meanwhile, 
+% Along with the strengthened regulations over on data privacy protection, 
+As concerns are increasingly raised about data privacy,
+encrypted database management system (DBMS) based on fully homomorphic 
+encryption (FHE) attracts increasing research attention, as FHE permits DBMS 
+to be directly outsourced to cloud servers without revealing any plaintext data. 
+However, the real-world deployment of FHE-based DBMS faces two main challenges: 
+i) high computational latency, and ii) lack of elastic query processing capability, 
+both of which stem from the inherent limitations of the underlying FHE operators.
+Here, we introduce \NAME, a fully homomorphically encrypted, 
+efficient and elastic DBMS framework based on a new FHE infrastructure.
+By proposing and integrating new arithmetic and logic homomorphic operators,
+we devise fast and high-precision homomorphic comparison and aggregation algorithms
+that enable a variety of SQL queries to be applied over FHE ciphertexts, 
+e.g., compound filter-aggregation, sorting, grouping, and
+joining. In addition, in contrast to existing encrypted DBMS that only support
+aggregated information retrieval, our framework permits further server-side 
+analytical processing over the queried FHE ciphertexts, such as private
+decision tree evaluation.
+In the experiment, we rigorously study the efficiency and flexibility of 
+\NAME. We show that, compared to the state-of-the-art techniques,
+\NAME can homomorphically evaluate end-to-end SQL queries 
+as much as $41\times$--$299\times$ faster than the state-of-the-art solution,
+completing a TPC-H query over a 16-bit 10K-row database within 241 seconds.
+%$34\times$ faster sorting, and zz$\times$--rr$\times$ faster decision tree evaluation,
+
+\end{abstract}
+
+% In this work, we delve into such a problem, encrypted database management system (EDBMS) -
+% where a client wants to manage and analyze her data without revealing the data 
+% to the cloud service provider. 
+% , significantly improving the practical applicability 
+% of FHE-based DBMS.
+% to evaluate aggregation queries containing 
+% unbounded filter predicates without decryption. 
+% Furthermore, we design a mechanism for querying and analyzing data in encrypted 
+% To add: 
+% To the best of our knowledge, this is the first work that supports homomorphic decision trees in encrypted databases where both the data and the model are in encrypted form.
+% As part of our design, we solve multiple cryptographic problems related to FHE
+% DBMS bridge the gap between data queries and data analysis by supporting both data management and application constructions.

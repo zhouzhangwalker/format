@@ -1,0 +1,189 @@
+First of all, 
+we want to thank all the reviewers for their valuable comments,
+and we will revise our manuscript accordingly.
+In what follows, we summarize our responses to the questions.
+*** 
+# 118A 
+**Question A-1**: Analyze complexity between HE3DB and [73].  
+**Answer A-1**: 
+In short, our method requires $1+2 \cdot \lceil n/5\rceil$ bootstrapping operations
+for the MSB extraction of an $n$-bit encrypted plaintext,
+while [73] requires $1+2 \cdot \lceil n/3 \rceil$ 
+(or $1+2 \cdot \lceil n/4 \rceil$ when the noise is fresh). 
+Hence, when $n$ becomes large, 
+our method enjoys a better slope than [73].
+We do have different decomposition parameters, and
+we use FFT instead of NTT, which can jointly result in performance 
+differences. We find out that without AVX,
+we can still be $10$x--$22$x faster than the
+implementation of [73] (AVX2 actually doesn't
+affect TFHEpp. TFHEpp becomes 3.5x slower if AVX is disabled).
+We will include the above discussions in the revised manuscript.
+
+*** 
+# 118B
+**Question B-1**: Achieving malicious security over FHE?  
+**Answer B-1**: 
+Achieving malicious security in an FHE-based approach 
+requires additional cryptographic techniques 
+such as ZKP or OPRF [a]. 
+However, current methods result in relatively high computational 
+costs, and can be slower than TEE or MPC-based approaches. 
+We do believe that providing malicious security for FHE
+is an important and promising direction of research.
+
+[a] Hao Chen et al., "Labeled PSI from Fully Homomorphic Encryption with 
+Malicious Security", CCS, 2018.
+
+**Question B-2**: Access pattern leaked? Can MPC or TEE be better?  
+**Answer B-2**: 
+We would first like to kindly point out that, similar to HEDA [91], 
+HE$^3$DB performs a linear scan of the entire database for each query,
+which ensures access pattern privacy.
+We agree that MPC and TEE-based approaches can also
+hide access patterns [96, 16]. 
+We will add more clarifications
+on these approaches in Section 1.2 of the manuscript.
+
+**Question B-3**: Why HEDA 80-bit and HE3DB 128-bit?  
+**Answer B-3**: 
+We are sorry that this is a typo. HEDA does provide 128-bit
+security, and we will revise the manuscript.
+
+*** 
+# 118C
+
+**Question C-1**: Alg 1. looks overcomplicated. Can't we simply ... to obtain $ct_4$?  
+**Answer C-1**: 
+As discussed in Section 1 of [31] and Figure 2 of [75],
+to correctly bootstrap a TFHE ciphertext, 
+we have to ensure that the MSB of the encrypted plaintext is zero.
+Therefore, before applying PBS on $ct_1$, 
+it is necessary to reset the MSB of the plaintext
+encrypted in $ct_1$, which is basically why we need to first produce
+$ct_4$.
+We will include the above explanations in the manuscript.
+
+**Question C-2**: Isn't possible ... to directly 
+evaluate the function? The proposed method ... faster and more accurate?  
+**Answer C-2**: 
+Different from HMSB, the output of a high-precision absolute function 
+depends on all bits of the encrypted plaintext.
+Consequently, we cannot use the shift-and-subtract strategy in Alg. 2 
+to remove the lower bits as noises like HMSB.
+For homomorphic min/max and sorting functions, we show that we are faster
+than the open-source implementations of [28], and are both faster
+and more accurate than [75] (Please kindly refer to Fig. 6 and Fig. 7),
+which are two of the most recent state-of-the-art methods.
+
+**Question C-3**: The given LWEstoRLWE algorithm may be slower than
+[25].  
+**Answer C-3**: 
+While [25] is an highly accurate way of converting LWEs to RLWE,
+we find two limitations in applying [25] to DB.
+First, it is not known how to change parameters ($n$ and $q$)
+when converting the LWE ciphertexts to the RLWE ciphertext using [25].
+Second, the runtime of HomMod is independent of the number of LWE ciphertexts
+to be converted, while [25] grows linearly.
+As a result, in encrypted DB where we need to change encryption parameters
+for aggregation, HomMod is easier to adopt and also runs faster than [25] in 
+our experiments.
+We will add the above explanations in the revised manuscript.
+
+**Comment C-4**: Range of the plaintext?  
+**Answer C-4**: 
+We encoded the plaintext as integers in the range $[-2^{k-1}, 2^{k-1})$ and 
+adopt the two's complement representation where the MSB of the value indicates 
+where the number is positive or negative (the sign).
+In two's complement, the MSB of $a-b$ represents the sign bit of the 
+subtracted result, which is 0 if $a\geq b$,
+and 1 for if $a  <  b$. 
+
+**Comment C-5**: Most solutions can be ... the parameter.   
+**Answer C-5**: We agree that [28] does support 32-bit precision, and
+many methods can support unbounded depth using standard FHE bootstrapping. 
+We will correct the mistakes and revise the expressions
+in Table 3 to better explain the practical benefits of our method 
+when applied in DB.
+
+
+
+Thank you for your question. We appreciate your 
+additional comment because this was an issue that 
+could not be fully discussed due to the 700-word limit
+to the above clarification. 
+
+First of all, we would like to clarify that, when we
+compile [73] with the CMake flag "WITH_NATIVEOPT=ON", the speed improvement 
+was at most 1.2x instead of 5x. 
+We believe that, as you suggest (and also pointed out
+in [73]), since NATIVEOPT is a machine-specific 
+optimization flag, the speed improvement varies from
+machine to machine.
+In this work, we are running on a server-grade Intel Xeon 6226R
+processor, while Table 2 of [73] performs the experiment on a 
+consumer-grade Intel Core i7-9700 CPU (in general,
+consumer-grade CPU runs faster than server-grade CPU in
+single-core mode). We do agree that these are most
+implementation variations, and plan to include more complexity
+analysis in our manuscript as described below.
+
+Next, we would like to clarify that, in Table 4 of our
+manuscript, we report the runtime for 4 and 16-bit
+homomorphic $\geq$ comparison. We note that this is different
+from a 4-bit MSB extraction. Specifically, the comparison
+between 4-bit numbers requires the MSB extraction of a
+5-bit number, for that the subtraction between two 4-bit
+numbers can result in a 5-bit number. For example, if we
+wish to compare -7 (4-bit) and 6 (4-bit), the subtracted
+result is -13 (5-bit). Therefore, in Table 4, we actually
+use a 5-bit MSB extraction for 4-bit comparison and 17-bit
+MSB extraction for 16-bit comparison. Thus,
+the performance difference 
+reported in Table 4 of our manuscript differs from that in Table 2 of [73].
+We plan to modify Table 4 to better present the performance results reported in [73].
+
+Finally, in terms of the algorithmic and complexity difference
+with respect to [73], we believe that the one bit difference is 
+subtle and reflects the fundamental difference between our algorithm
+and that in [73]. Using the language of [73],
+for a message $m$
+encrypted in a ciphertext $({\mathbf{a}}, b)$, the lower
+bits of $m$ is cleared through the HomFloor function, which set
+the least $\log{p}=\log{(q/\alpha)}$ bits of $m$ to be zeroes (in fact, there is an
+error between ${\mathbf{\rm Dec}}({\mathbf{c}}', d')$ and 
+$\alpha r(m)$, but we assume the errors to be small).
+Then, HomSign repeatedly calls HomFloor to clear all the lower bits
+of $m$. In contrast, in our method, we multiply $({\mathbf{a}}, b)$
+by a factor of $2^{k-1}$, and take out a $k$-bit segment of $m$ using TFHE PBS.
+The difference here is essential: [73] takes out a $q$-bit 
+segment of $m$ by directly taking $({\mathbf{a}}, b)\bmod{q}$,
+while we take out a $k$-bit segment of $m$ by multiplying 
+$({\mathbf{a}}, b)$ with $2^{k-1}$ and then reduce the result
+by $Q'$ (e.g., the real ciphertext modulus that can be as large as $2^{54}$).
+Without the multiplication between $({\mathbf{a}}, b)$ with $2^{k-1}$,
+$p=q/\alpha$ can only be set to as large as $2^{4}$. The main
+reason here is that $q$ can only be as
+large as $2N=4096$ in most AP/GINX type bootstrapping procedures for
+efficiency reasons,
+and an $\alpha=2^{8}$ is required to separate $m$ from the LWE errors
+$e$ (therefore $p=2^{12}/2^{8}=2^{4}$). Consequently, [73] can only take 
+out a $4$-bit (i.e., $p=2^{4}$) 
+segment of $m$ using a single call to HomFloor, while our $k$-bit
+HMSB can use the full bootstrapping capability of TFHE to take out a 
+$5$-bit (i.e., $k=5$) segment of $m$ (and you are correct that
+our $k$ is also affected by the size of ciphertext modulus $Q'$, similar to [73]),
+resulting in an extra bit being taken out in every bit clearing iteration
+(and therefore the complexity difference).
+This is also the reason
+why we do not have to differentiate $Q$ and $Q'$, so we have less parameter
+requirements. We believe that the above
+analysis is largely independent of the secret distribution. However,
+you are correct that smaller secrets will result in smaller noise growths,
+and the exact parameters can vary in practice. 
+When $N$ and $Q$ (and $Q'$) become large, we may see further differences
+as the methods of determining $p$ in [73] and $k$ in our work both change.
+We think that the above detailed discussion is very interesting and we plan
+to include as much as possible in our manuscript 
+(if we do not have enough space in the main body of texts,
+we will include it in the appendix).

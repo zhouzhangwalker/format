@@ -1,0 +1,120 @@
+In HE3DB,
+the LWE ciphertexts are filtered results 
+with a small dimension ($n=1024$) and modulus ($q$ is bit).
+The straight application of [25] results in packed RLWE ciphertext 
+also having small parameters, and we cannot perform further aggregation 
+on such small-parameter RLWE ciphertext.
+
+First of all, 
+we would like to thank all the reviewers for their valuable comments. 
+In what follows, we summarize our responses to the questions,
+and plan to revise our manuscript accordingly.
+*** 
+# Review #118A 
+**Question A-1**: Analyze complexity between HE3DB and [73].
+**Answer A-1**:  
+We find out that our method requires $1+(2n/5)$ bootstrapping operations
+for the MSB extraction of an $n$-bit encrypted plaintext,
+while [73] requires $1+(2n/3)$ (in the fresh-noise settings, it
+becomes $1+2n/4$). Therefore, our method enjoys a better slope than 
+the method in [73], which translates to up to 1.6x faster for 32-bit 
+comparison for DB.
+Besides, we also have different decomposition parameter settings, and
+we use FFT instead of NTT, which can all result in performance differences.
+We will revise the manuscript to include the above discussions and
+correct the mistakes.   
+
+*** 
+# Review #118B
+**Question B-1**: The cost of achieving malicious security over FHE?
+**Answer B-1**:
+Achieving malicious security in an FHE-based approach indeed
+requires additional cryptographic techniques 
+such as zero-knowledge proofs or OPRF (e.g., [a]). 
+However, current methods do result in relatively high computational 
+costs, and can be slower than TEE or MPC-based approaches. 
+Despite these challenges, 
+we believe that providing malicious security for homomorphic encryption 
+is an important and promising direction of research.
+
+[a] Hao Chen et al., "Labeled PSI from Fully Homomorphic Encryption with 
+Malicious Security", CCS, 2018.
+
+**Question B-2**: It seems access pattern is leaked in the current setting. Can MPC or TEE be better?
+**Answer B-2**: 
+We would first like to kindly point out that, similar to HEDA [91], 
+HE$^3$DB performs a linear scan of the entire database for each query,
+thereby ensuring the privacy of the query access pattern.
+We agree that there are also MPC or TEE-based approaches which can
+hide access patterns [96, 16]. 
+However, they rely on additional interactions or tools, 
+which can result in increased communication costs or slower performance.
+We will add more clarifications
+on these approaches in Section 1.2 of the main manuscript.
+
+**Question B-3**: :Can you comment on why HEDA provides 80-bit security and you provide 128-bit?
+**Answer B-3**:
+We apologize that this is actually a mistake. HEDA does provide 128-bit
+security, and we will correct this mistake in the revised manuscript.
+
+*** 
+# Review #118C
+
+**Question C-1**: Alg 1. looks overcomplicated. Can't we simply ... to obtain ct_4?
+**Answer C-1**: 
+As discussed in Section 1 of [31] (Chillotti et al.) 
+and Figure 2 of [75] (Lu et al.),
+to correctly bootstrap a TFHE ciphertext, 
+we have to ensure that the MSB of the encrypted plaintext is zero.
+Therefore, before applying PBS on $ct_1$, 
+it is necessary to discard the MSB of the plaintext
+encrypted in $ct_1$, which is basically why we need to first produce
+ct_4.
+We will correct the main manuscript to include the above explanations.
+
+**Question C-2**: Isn't possible ... to directly 
+evaluate the function? The proposed method ... faster and more accurate?
+**Answer C-2**:
+Different from HMSB, the result of a high-precision absolute function 
+depends on all bits of the encrypted plaintext.
+Consequently, we cannot use the shift-and-subtract strategy in Alg. 2 
+to remove the lower bits as noises like HMSB.
+For homomorphic min/max and sorting functions, we show that we are faster
+than the open-source implementations of [28], and are both faster
+and more accurate than [75] (Please kindly refer to Fig. 6 and Fig. 7),
+which are two of the most recent state-of-the-art methods.
+
+**Question C-3**: The given LWEstoRLWE algorithm may be slower than
+[25].
+**Answer C-3**:
+While [25] is also an excellent way of converting LWEs to an RLWE,
+we find two limitations 
+in applying [25] to encrypted databases.
+First, it is not known how to change parameters (e.g., $n$ and $q$)
+when converting a set of LWE ciphertexts to an RLWE ciphertext using [25].
+Second, the runtime of HomMod is independent of the number of LWE ciphertexts
+(e.g., $N/2$), while the runtime [25] grows linearly with $N$ 
+(therefore O($N$)).
+As a result, in the application
+of encrypted DB, we find that HomMod is more suitable and
+faster than [25] in practice. 
+We will add more explanations on
+the applicability of [25] in the revised manuscript.
+
+
+**Comment C-4**: Range of the plaintext?
+**Answer C-4**:
+We encoded the plaintext as integers in the range $[-2^{k-1}, 2^{k-1})$ and 
+adopt the two's complement representation where the MSB of the value indicates 
+where the number is positive or negative (the sign).
+In two's complement, the MSB of $a-b$ represents the sign bit of the 
+result, which is 0 if $a\geq b$,
+and 1 for if $a  <  b$. We verified the correctness
+of the proposed comparison in the submitted codes.
+
+**Comment C-5**: Most solutions can be ... the parameter. 
+**Answer C-5**: We agree that [28] does support 32-bit precision, and
+many methods can support unbounded depth using standard FHE bootstrapping. 
+We will correct the mistakes and revise the expressions
+in Table 3 to better explain the practical benefits of our method 
+when applied in DB.
